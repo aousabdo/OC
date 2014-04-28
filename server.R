@@ -16,7 +16,6 @@ shinyServer(function(input, output){
     CL    <- input$CL
     
     test1 <- input$test1 # length of test 1
-#     if(input$addAF1){
     if(FALSE){
       AF1   <- input$AF1 # acceptable number of failures for test 1
     }
@@ -30,7 +29,6 @@ shinyServer(function(input, output){
     if(input$addtest2){
       test2 <- input$test2
       if(FALSE){
-#         if(input$addAF2){
         AF2   <- input$AF2
       }
       else{
@@ -42,7 +40,6 @@ shinyServer(function(input, output){
     if(input$addtest3 & input$addtest2){
       test3 <- input$test3
       if(FALSE){
-#         if(input$addAF3){
         AF3   <- input$AF3
       }
       else{
@@ -161,10 +158,7 @@ shinyServer(function(input, output){
       legtext   <- 1.2
     }
     
-    par(mar=c(5, 6.5, 4, 2) + 0.1)
-    #plot(df$MTBF, df$Test1, type="n")
-    # Add grid
-    #grid(lwd=2)  
+    par(mar=c(5, 6.5, 4, 2) + 0.1) 
     if(input$adjustMTBF){
       xmin <- input$mtbfmin
       xmax <- input$mtbfmax
@@ -216,60 +210,90 @@ shinyServer(function(input, output){
       }
     }
     
-    # Add vertical lines for tests goals
-    abline(v=vert1, col="blue", lty=2, lwd=linewidth)
+    ## add lines for the other tests
     if(input$addtest2){
       lines(df$MTBF, df$Test2, col="red", lwd=linewidth)
-      abline(v=vert2, col="red", lty=2, lwd=linewidth)
       if(input$addtest3){
         lines(df$MTBF, df$Test3, col="darkgreen", lwd=linewidth)
-        abline(v=vert3, col="darkgreen", lty=2, lwd=linewidth)
       }
     }
     
-    # Add vertical TRV and horizontal PA lines
-    abline(input$PA, 0, col="black", lwd=linewidth)
-    abline(v=input$TRV, col="black", lwd=linewidth, lty=2)
-  
+    if(!input$toglines){
+      # Add vertical lines for tests goals
+      abline(v=vert1, col="blue", lty=2, lwd=linewidth)
+      if(input$addtest2){
+        abline(v=vert2, col="red", lty=2, lwd=linewidth)
+        if(input$addtest3){
+          abline(v=vert3, col="darkgreen", lty=2, lwd=linewidth)
+        }
+      }
+      
+      # Add vertical TRV and horizontal PA lines
+      abline(input$PA, 0, col="black", lwd=linewidth)
+      abline(v=input$TRV, col="black", lwd=linewidth, lty=2)
+    }
     
     # Legend entries
-    leg1 <- sprintf("Probability of Acceptance Level")
-    leg2 <- sprintf("%s length = %.0f hours, %.0f failures permitted", test1name, TL[1], AF[1])
-    leg5 <- sprintf("Threshold Requirement")
-    leg6 <- sprintf("%s Pre IOT&E Reliability Goal: %.2f Hours",test1name, vert1[1])
-    
-    # Customize legend
-    legend_entries <- c(leg1, leg2, leg5, leg6)
-    legend_colors  <- c("black", "blue", "black", "blue")
-    legend_lty     <- c(1,1,2,2)
-    if(input$addtest2){
-      leg3 <- sprintf("%s length = %.0f hours, %.0f failures permitted",test2name, TL[2], AF[2])
-      leg7 <- sprintf("%s Pre IOT&E Reliability Goal: %.2f Hours",test2name, vert2[1])
-      legend_entries[3] <- leg3
-      legend_entries[4] <- leg5
-      legend_entries[5] <- leg6
-      legend_entries[6] <- leg7
-      legend_colors[3]  <- "red"
-      legend_colors[4]  <- "black"
-      legend_colors[5]  <- "blue"
-      legend_colors[6]  <- "red"
-      legend_lty[3]     <-  1
-      legend_lty[4:6]     <-  2
-      if(input$addtest3){
-        leg4 <- sprintf("%s length = %.0f hours, %.0f failures permitted",test3name, TL[3], AF[3])
-        leg8 <- sprintf("%s Pre IOT&E Reliability Goal: %.2f Hours", test3name, vert3[1])
-        legend_entries[4] <- leg4
-        legend_entries[5] <- leg5
-        legend_entries[6] <- leg6
-        legend_entries[7] <- leg7
-        legend_entries[8] <- leg8
-        legend_colors[4]  <- "darkgreen"
-        legend_colors[5]  <- "black"
-        legend_colors[6]  <- "blue"
-        legend_colors[7]  <- "red"
-        legend_colors[8]  <- "darkgreen"
-        legend_lty[4]     <-  1
-        legend_lty[5:8]   <-  2
+    if(!input$toglines){
+      leg1 <- sprintf("Probability of Acceptance Level")
+      leg2 <- sprintf("%s length = %.0f hours, %.0f failures permitted", test1name, TL[1], AF[1])
+      leg5 <- sprintf("Threshold Requirement")
+      leg6 <- sprintf("%s Pre IOT&E Reliability Goal: %.2f Hours",test1name, vert1[1])
+      
+      # Customize legend
+      nCol <- 2 
+      legend_entries <- c(leg1, leg2, leg5, leg6)
+      legend_colors  <- c("black", "blue", "black", "blue")
+      legend_lty     <- c(1,1,2,2)
+      if(input$addtest2){
+        leg3 <- sprintf("%s length = %.0f hours, %.0f failures permitted",test2name, TL[2], AF[2])
+        leg7 <- sprintf("%s Pre IOT&E Reliability Goal: %.2f Hours",test2name, vert2[1])
+        legend_entries[3] <- leg3
+        legend_entries[4] <- leg5
+        legend_entries[5] <- leg6
+        legend_entries[6] <- leg7
+        legend_colors[3]  <- "red"
+        legend_colors[4]  <- "black"
+        legend_colors[5]  <- "blue"
+        legend_colors[6]  <- "red"
+        legend_lty[3]     <-  1
+        legend_lty[4:6]     <-  2
+        if(input$addtest3){
+          leg4 <- sprintf("%s length = %.0f hours, %.0f failures permitted",test3name, TL[3], AF[3])
+          leg8 <- sprintf("%s Pre IOT&E Reliability Goal: %.2f Hours", test3name, vert3[1])
+          legend_entries[4] <- leg4
+          legend_entries[5] <- leg5
+          legend_entries[6] <- leg6
+          legend_entries[7] <- leg7
+          legend_entries[8] <- leg8
+          legend_colors[4]  <- "darkgreen"
+          legend_colors[5]  <- "black"
+          legend_colors[6]  <- "blue"
+          legend_colors[7]  <- "red"
+          legend_colors[8]  <- "darkgreen"
+          legend_lty[4]     <-  1
+          legend_lty[5:8]   <-  2
+        }
+      }
+    }
+    else {
+      leg1 <- sprintf("%s length = %.0f hours, %.0f failures permitted", test1name, TL[1], AF[1])
+      # Customize legend
+      nCol <- 1
+      legend_entries <- c(leg1)
+      legend_colors  <- c("blue")
+      legend_lty     <- c(1)
+      if(input$addtest2){
+        leg2 <- sprintf("%s length = %.0f hours, %.0f failures permitted",test2name, TL[2], AF[2])
+        legend_entries[2] <- leg2
+        legend_colors[2]  <- "red"
+        legend_lty[2]     <- 1
+        if(input$addtest3){
+          leg3 <- sprintf("%s length = %.0f hours, %.0f failures permitted",test3name, TL[3], AF[3])
+          legend_entries[3] <- leg3
+          legend_colors[3]  <- "black"
+          legend_lty[3]     <- 1
+        }
       }
     }
     
@@ -278,7 +302,7 @@ shinyServer(function(input, output){
     plot.new()
     legend( "center", legend = legend_entries, 
             lty=legend_lty, lwd=rep(linewidth, length(legend_lty)), 
-            col=legend_colors, ncol=2, bty="y", cex=legtext
+            col=legend_colors, ncol=nCol, bty="y", cex=legtext
     )
   }
   
@@ -409,7 +433,7 @@ shinyServer(function(input, output){
         testv[3] <- df$vert3[1]
       }
     }
-    print(testv)
+    #print(testv)
     df <- data.frame("Test"=tests, "Test Length (hours)"=testl, 
                      "Allowed Failures"=testr, "Pre IOT&E Reliability Goal (hours)"
                      =testv, check.names=FALSE)
