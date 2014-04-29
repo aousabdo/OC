@@ -14,36 +14,21 @@ shinyServer(function(input, output){
     TRV   <- input$TRV
     PA    <- input$PA
     CL    <- input$CL
+    addtest2 <- input$addtest2
+    addtest3 <- input$addtest3
     
     test1 <- input$test1 # length of test 1
-    if(FALSE){
-      AF1   <- input$AF1 # acceptable number of failures for test 1
-    }
-    else{
-      AF1   <- MaxFailFun(TL=test1, RR = TRV, CL = CL) 
-    }
+    AF1   <- MaxFailFun(TL=test1, RR = TRV, CL = CL) 
     test2 = test3 = AF2 = AF3 <- NA # initialize second and third test parameters to NA. 
     # These will be modified later if user selects to plot tests see below
     
     # Change test 2 pars to selected 
-    if(input$addtest2){
+    if(addtest2){
       test2 <- input$test2
-      if(FALSE){
-        AF2   <- input$AF2
-      }
-      else{
-        AF2   <- MaxFailFun(TL=test2, RR = TRV, CL = CL)
-      }
-    }
-    
-    # Change test 3 pars to selected
-    if(input$addtest3 & input$addtest2){
-      test3 <- input$test3
-      if(FALSE){
-        AF3   <- input$AF3
-      }
-      else{
-        AF3   <- MaxFailFun(TL=test3, RR = TRV, CL = CL)
+      AF2   <- MaxFailFun(TL=test2, RR = TRV, CL = CL) 
+      if(addtest3){
+        test3 <- input$test3
+        AF3   <- MaxFailFun(TL=test3, RR = TRV, CL = CL)        
       }
     }
 
@@ -52,11 +37,11 @@ shinyServer(function(input, output){
     }
     else{
       MTBFMax <- MaxX(AF=AF1, test=test1, tolerance=tolerance, MaxValue=1.0)
-      if(input$addtest2){
+      if(addtest2){
         if(MaxX(AF=AF2, test=test2, tolerance=tolerance, MaxValue=1.0) > MTBFMax){
           MTBFMax <- MaxX(AF=AF2, test=test2, tolerance=tolerance, MaxValue=1.0)
         }
-        if(input$addtest3){
+        if(addtest3){
           if(MaxX(AF=AF3, test=test3, tolerance=tolerance, MaxValue=1.0) > MTBFMax){
             MTBFMax <- MaxX(AF=AF3, test=test3, tolerance=tolerance, MaxValue=1.0)
           }
@@ -64,6 +49,7 @@ shinyServer(function(input, output){
       }
       MTBF <- seq(input$mtbfmin, MTBFMax, 0.1)
     }
+    
     TL    <- c(test1, test2, test3)# Vector to store tese lengths
     AF    <- c(AF1, AF2, AF3)# Vector to store acceptable number of failures for all tests
     
@@ -74,28 +60,28 @@ shinyServer(function(input, output){
     Prob1 <- ppois(AF1, test1/MTBF)
   
     # Store in a dataframe
-    df <- data.frame(MTBF=MTBF, Test1=Prob1)
-    df2   <- mutate(df, Prob1diff=abs(Prob1-PA))
-    vert1 <- df2[df2$Prob1diff == min(df2$Prob1diff),]$MTBF
+    df       <- data.frame(MTBF=MTBF, Test1=Prob1)
+    df2      <- mutate(df, Prob1diff=abs(Prob1-PA))
+    vert1    <- df2[df2$Prob1diff == min(df2$Prob1diff),]$MTBF
     df$vert1 <- vert1
     
     # do the same for test 2 and 3 if selected by user
-    if(input$addtest2){
-      Prob2 <- ppois(AF2, test2/MTBF)
+    df$vert2 <- NA
+    df$vert3 <- NA
+    if(addtest2){
+      Prob2    <- ppois(AF2, test2/MTBF)
       df$Test2 <- Prob2
-      df2   <- mutate(df, Prob2diff=abs(Prob2-PA))
-      vert2 <- df2[df2$Prob2diff == min(df2$Prob2diff),]$MTBF
+      df2      <- mutate(df, Prob2diff=abs(Prob2-PA))
+      vert2    <- df2[df2$Prob2diff == min(df2$Prob2diff),]$MTBF
       df$vert2 <- vert2
+      if(addtest3 ){
+        Prob3    <- ppois(AF3, test3/MTBF)
+        df$Test3 <- Prob3
+        df2      <- mutate(df, Prob3diff=abs(Prob3-PA))
+        vert3    <- df2[df2$Prob3diff == min(df2$Prob3diff),]$MTBF
+        df$vert3 <- vert3
+      }
     }
-    else{df$vert2 <- NA}
-    if(input$addtest3 & input$addtest2){
-      Prob3 <- ppois(AF3, test3/MTBF)
-      df$Test3 <- Prob3
-      df2   <- mutate(df, Prob3diff=abs(Prob3-PA))
-      vert3 <- df2[df2$Prob3diff == min(df2$Prob3diff),]$MTBF
-      df$vert3 <- vert3
-    }
-    else{df$vert3 <- NA}
     
     # Melt data frame one variable at a time
     df <- melt(df, id=c("MTBF", "vert1", "vert2", "vert3"), variable.name = "Test", 
